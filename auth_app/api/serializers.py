@@ -36,3 +36,13 @@ class LoginSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+class EmailCheckSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class UserSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "email", "fullname"]

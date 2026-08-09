@@ -1,9 +1,18 @@
 from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+
+from auth_app.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, RegistrationSerializer
+from .serializers import (
+    EmailCheckSerializer,
+    LoginSerializer,
+    RegistrationSerializer,
+    UserSummarySerializer,
+)
 
 
 class RegistrationView(APIView):
@@ -44,3 +53,17 @@ class LoginView(APIView):
                 "user_id": user.id,
             }
         )
+
+
+class EmailCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = EmailCheckSerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+
+        user = get_object_or_404(
+            User,
+            email=query.validated_data["email"],
+        )
+        return Response(UserSummarySerializer(user).data)
