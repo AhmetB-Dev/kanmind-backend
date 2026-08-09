@@ -21,19 +21,20 @@ class RegistrationView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.save()
-        token, _ = Token.objects.get_or_create(user=user)
-
         return Response(
-            {
-                "token": token.key,
-                "fullname": user.fullname,
-                "email": user.email,
-                "user_id": user.id,
-            },
+            self._get_auth_data(user),
             status=status.HTTP_201_CREATED,
         )
+
+    def _get_auth_data(self, user):
+        token, _ = Token.objects.get_or_create(user=user)
+        return {
+            "token": token.key,
+            "fullname": user.fullname,
+            "email": user.email,
+            "user_id": user.id,
+        }
 
 
 class LoginView(APIView):

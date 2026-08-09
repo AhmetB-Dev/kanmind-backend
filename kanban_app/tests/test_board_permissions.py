@@ -7,16 +7,8 @@ from kanban_app.models import Board
 
 class BoardPermissionTests(APITestCase):
     def setUp(self):
-        self.owner = User.objects.create_user(
-            email="owner@example.com",
-            password="TestPassword123!",
-            fullname="Owner User",
-        )
-        self.other_user = User.objects.create_user(
-            email="other@example.com",
-            password="TestPassword123!",
-            fullname="Other User",
-        )
+        self.owner = self._create_user("owner@example.com", "Owner User")
+        self.other_user = self._create_user("other@example.com", "Other User")
         self.board = Board.objects.create(
             title="Private Board",
             owner=self.owner,
@@ -45,3 +37,10 @@ class BoardPermissionTests(APITestCase):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(f"/api/boards/{self.board.id}/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def _create_user(self, email, fullname):
+        return User.objects.create_user(
+            email=email,
+            password="TestPassword123!",
+            fullname=fullname,
+        )

@@ -115,23 +115,21 @@ class AssignedToMeView(GenericAPIView):
 class BoardViewSet(ModelViewSet):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def get_queryset(self):
         if self.action != "list":
             return Board.objects.all()
-
         user = self.request.user
         return Board.objects.filter(Q(owner=user) | Q(members=user)).distinct()
 
     def get_permissions(self):
-        permissions = [IsAuthenticated]
-
+        permission_classes = [IsAuthenticated]
         if self.action == "destroy":
-            permissions.append(IsBoardOwner)
+            permission_classes.append(IsBoardOwner)
         elif self.action in ["retrieve", "update", "partial_update"]:
-            permissions.append(IsBoardMemberOrOwner)
-
-        return [permission() for permission in permissions]
+            permission_classes.append(IsBoardMemberOrOwner)
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -143,7 +141,7 @@ class BoardViewSet(ModelViewSet):
 
 class TaskCommentsView(GenericAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTaskBoardMember]
 
     def get(self, request, task_id):
         task = self._get_task(task_id)
@@ -156,21 +154,9 @@ class TaskCommentsView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(task=task, author=request.user)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def _get_task(self, task_id):
         task = get_object_or_404(Task, pk=task_id)
-        self._check_task_access(task)
+        self.check_object_permissions(self.request, task)
         return task
-
-    def _check_task_access(self, task):
-        user = self.request.user
-        board = task.board
-        if board.owner == user:
-            return
-        if board.members.filter(pk=user.pk).exists():
-            return
-        self.permission_denied(self.request)

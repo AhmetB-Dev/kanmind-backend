@@ -46,22 +46,20 @@ class BoardApiTests(APITestCase):
         self.assertIn("tasks", response.data)
 
     def test_board_update(self):
-        board = Board.objects.create(title="Board A", owner=self.user)
-        board.members.add(self.user)
-
-        data = {
-            "title": "Updated Board",
-            "members": [self.user.id],
-        }
+        board = Board.objects.create(
+            title="Board A",
+            owner=self.user,
+        )
 
         response = self.client.patch(
             f"/api/boards/{board.id}/",
-            data,
+            {"title": "Updated Board", "members": [self.user.id]},
             format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], "Updated Board")
+        self.assertEqual(response.data["owner_data"]["id"], self.user.id)
 
     def test_board_delete(self):
         board = Board.objects.create(title="Board A", owner=self.user)
