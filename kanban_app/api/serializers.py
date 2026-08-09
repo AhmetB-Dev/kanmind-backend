@@ -160,7 +160,9 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def _has_board_access(self, board, user):
-        return board.owner == user or board.members.filter(pk=user.pk).exists()
+        is_owner = board.owner == user
+        is_member = board.members.filter(pk=user.pk).exists()
+        return is_owner or is_member
 
     def _validate_task_users(self, board, attrs):
         for field in ["assignee", "reviewer"]:
@@ -211,12 +213,18 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
-        if "board" in self.initial_data:
+        self._validate_board()
+        self._validate_users(attrs)
+        return attrs
+
+    def _validate_board(self):
+        board_id = self.initial_data.get("board")
+        if board_id is None:
+            return
+        if str(board_id) != str(self.instance.board_id):
             raise serializers.ValidationError(
                 {"board": "Changing the board is not allowed."}
             )
-        self._validate_users(attrs)
-        return attrs
 
     def _validate_users(self, attrs):
         board = self.instance.board
@@ -228,7 +236,9 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
                 )
 
     def _has_access(self, board, user):
-        return board.owner == user or board.members.filter(pk=user.pk).exists()
+        is_owner = board.owner == user
+        is_member = board.members.filter(pk=user.pk).exists()
+        return is_owner or is_member
 
 
 class TaskListSerializer(serializers.ModelSerializer):

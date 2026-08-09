@@ -11,8 +11,8 @@ from kanban_app.models import Board, Comment, Task
 from .permissions import (
     IsBoardMemberOrOwner,
     IsBoardOwner,
-    IsTaskBoardMember,
     IsCommentAuthor,
+    IsTaskBoardMember,
     IsTaskCreatorOrBoardOwner,
 )
 

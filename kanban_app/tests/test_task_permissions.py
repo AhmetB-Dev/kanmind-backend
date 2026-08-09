@@ -11,7 +11,7 @@ class TaskPermissionTests(APITestCase):
         self.member = self._create_user("member@example.com")
         self.outsider = self._create_user("outsider@example.com")
         self.board = Board.objects.create(title="Board", owner=self.owner)
-        self.board.members.add(self.member)
+        self.board.members.add(self.owner, self.member)
 
     def _create_user(self, email):
         return User.objects.create_user(
@@ -39,6 +39,15 @@ class TaskPermissionTests(APITestCase):
         data = self._task_data()
         response = self.client.post("/api/tasks/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_owner_without_membership_can_create_task(self):
+        board = Board.objects.create(title="Owner Only", owner=self.owner)
+        self.client.force_authenticate(user=self.owner)
+        data = self._task_data()
+        data["board"] = board.id
+        data["assignee_id"] = self.owner.id
+        response = self.client.post("/api/tasks/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_outsider_cannot_update_task(self):
         task = self._create_task()

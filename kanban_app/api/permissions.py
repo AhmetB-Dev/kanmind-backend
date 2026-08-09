@@ -15,10 +15,10 @@ class IsBoardOwner(BasePermission):
 
 class IsTaskBoardMember(BasePermission):
     def has_object_permission(self, request, view, obj):
-        user = request.user
         board = obj.board
-
-        return board.owner == user or board.members.filter(pk=user.pk).exists()
+        is_owner = board.owner == request.user
+        is_member = board.members.filter(pk=request.user.pk).exists()
+        return is_owner or is_member
 
 
 class IsTaskCreatorOrBoardOwner(BasePermission):
