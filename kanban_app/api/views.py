@@ -2,10 +2,15 @@
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    ListCreateAPIView,
+    UpdateAPIView,
+)
+from rest_framework.mixins import DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from kanban_app.models import Board, Comment, Task
@@ -28,40 +33,28 @@ from .serializers import (
 )
 
 
-class CommentDeleteView(GenericAPIView):
+class CommentDeleteView(DestroyAPIView):
     """Delete a comment when requested by its author."""
 
+    serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, IsCommentAuthor]
+    lookup_url_kwarg = "comment_id"
 
-    def delete(self, request, task_id, comment_id):
-        """Delete the requested comment after object permission checks."""
-        comment = self._get_comment(task_id, comment_id)
-        self.check_object_permissions(request, comment)
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def _get_comment(self, task_id, comment_id):
-        """Return the comment only when it belongs to the requested task."""
-        return get_object_or_404(
-            Comment,
-            pk=comment_id,
-            task_id=task_id,
-        )
+    def get_queryset(self):
+        """Limit deletion to comments belonging to the requested task."""
+        return Comment.objects.filter(task_id=self.kwargs["task_id"])
 
 
-class TaskCreateView(GenericAPIView):
+class TaskCreateView(CreateAPIView):
     """Create tasks on boards accessible to the authenticated user."""
 
     serializer_class = TaskCreateSerializer
     permission_classes = [IsAuthenticated, IsBoardMemberOrOwner]
 
-    def post(self, request):
-        """Validate board access and create a task."""
+    def create(self, request, *args, **kwargs):
+        """Check board access before validating and creating the task."""
         self._check_board_access(request)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return super().create(request, *args, **kwargs)
 
     def _check_board_access(self, request):
         """Run board-level permissions before serializer validation."""
@@ -72,24 +65,23 @@ class TaskCreateView(GenericAPIView):
         self.check_object_permissions(request, board)
 
 
-class ReviewingTasksView(GenericAPIView):
+class ReviewingTasksView(ListAPIView):
     """List tasks where the authenticated user is the reviewer."""
 
     serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get_queryset(self):
         """Return tasks assigned to the current user for review."""
-        tasks = Task.objects.filter(reviewer=request.user)
-        serializer = self.get_serializer(tasks, many=True)
-        return Response(serializer.data)
+        return Task.objects.filter(reviewer=self.request.user)
 
 
-class TaskDetailView(GenericAPIView):
-    """Update or delete a single task using action-specific permissions."""
+class TaskDetailView(DestroyModelMixin, UpdateAPIView):
+    """Update or delete a task with action-specific permissions."""
 
     queryset = Task.objects.all()
     serializer_class = TaskUpdateSerializer
+    http_method_names = ["patch", "delete", "head", "options"]
 
     def get_permissions(self):
         """Use stricter permissions for task deletion."""
@@ -100,36 +92,20 @@ class TaskDetailView(GenericAPIView):
             permission_classes.append(IsTaskBoardMember)
         return [permission() for permission in permission_classes]
 
-    def patch(self, request, *args, **kwargs):
-        """Apply a partial update to an accessible task."""
-        task = self.get_object()
-        serializer = self.get_serializer(
-            task,
-            data=request.data,
-            partial=True,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
     def delete(self, request, *args, **kwargs):
-        """Delete a task when the caller has deletion permission."""
-        task = self.get_object()
-        task.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        """Delete the task through DRF's destroy mixin."""
+        return self.destroy(request, *args, **kwargs)
 
 
-class AssignedToMeView(GenericAPIView):
+class AssignedToMeView(ListAPIView):
     """List tasks assigned to the authenticated user."""
 
     serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get_queryset(self):
         """Return tasks where the current user is the assignee."""
-        tasks = Task.objects.filter(assignee=request.user)
-        serializer = self.get_serializer(tasks, many=True)
-        return Response(serializer.data)
+        return Task.objects.filter(assignee=self.request.user)
 
 
 class BoardViewSet(ModelViewSet):
@@ -164,29 +140,27 @@ class BoardViewSet(ModelViewSet):
         return BoardSerializer
 
 
-class TaskCommentsView(GenericAPIView):
+class TaskCommentsView(ListCreateAPIView):
     """List and create comments for an accessible task."""
 
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, IsTaskBoardMember]
 
-    def get(self, request, task_id):
-        """Return task comments in chronological order."""
-        task = self._get_task(task_id)
-        comments = task.comments.all()
-        serializer = self.get_serializer(comments, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        """Return comments for the requested accessible task."""
+        return self._get_task().comments.all()
 
-    def post(self, request, task_id):
-        """Create a comment authored by the authenticated user."""
-        task = self._get_task(task_id)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(task=task, author=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def create(self, request, *args, **kwargs):
+        """Check task access before validating a new comment."""
+        self.task = self._get_task()
+        return super().create(request, *args, **kwargs)
 
-    def _get_task(self, task_id):
+    def perform_create(self, serializer):
+        """Attach the authenticated user and requested task."""
+        serializer.save(task=self.task, author=self.request.user)
+
+    def _get_task(self):
         """Return the task after board-access permission checks."""
-        task = get_object_or_404(Task, pk=task_id)
+        task = get_object_or_404(Task, pk=self.kwargs["task_id"])
         self.check_object_permissions(self.request, task)
         return task
