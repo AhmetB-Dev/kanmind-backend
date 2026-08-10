@@ -10,22 +10,37 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-0gmejs(fr(4+%d3q3@&#vofzs2(noygx*k2j)qtz5xpo%6xg=m"
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-local-development-only",
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Keep DEBUG enabled locally and set DJANGO_DEBUG=False on the server.
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost,api.kanmind.ahmet-balci.de",
+    ).split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -121,12 +136,31 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 AUTH_USER_MODEL = "auth_app.User"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",
+    origin.strip()
+    for origin in os.getenv(
+        "DJANGO_CORS_ALLOWED_ORIGINS",
+        (
+            "http://127.0.0.1:5500,"
+            "http://localhost:5500,"
+            "https://kanmind.ahmet-balci.de,"
+            "https://ahmet-balci.de,"
+            "https://www.ahmet-balci.de"
+        ),
+    ).split(",")
+    if origin.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.kanmind.ahmet-balci.de",
+    "https://kanmind.ahmet-balci.de",
+    "https://ahmet-balci.de",
+    "https://www.ahmet-balci.de",
 ]
 
 
