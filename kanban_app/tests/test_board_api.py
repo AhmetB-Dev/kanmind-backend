@@ -1,3 +1,5 @@
+"""Automated kanban API and permission tests."""
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -6,6 +8,7 @@ from kanban_app.models import Board
 
 
 class BoardApiTests(APITestCase):
+    """Verify boardapi behavior."""
     def setUp(self):
         self.user = User.objects.create_user(
             email="boarduser@example.com",

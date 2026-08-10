@@ -1,3 +1,5 @@
+"""Automated authentication API and permission tests."""
+
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -6,6 +8,7 @@ from auth_app.management.commands.create_guest_user import GUEST_EMAIL
 
 
 class GuestCommandTests(TestCase):
+    """Verify guestcommand behavior."""
     def test_guest_user_is_created(self):
         call_command("create_guest_user")
 

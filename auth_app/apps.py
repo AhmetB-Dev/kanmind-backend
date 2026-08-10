@@ -1,5 +1,9 @@
+"""Django application configuration for authentication."""
+
 from django.apps import AppConfig
 
 
 class AuthAppConfig(AppConfig):
-    name = 'auth_app'
+    """Configure the authentication application."""
+
+    name = "auth_app"

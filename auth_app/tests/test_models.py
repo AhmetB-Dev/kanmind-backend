@@ -1,9 +1,12 @@
+"""Automated authentication API and permission tests."""
+
 from django.test import TestCase
 
 from auth_app.models import User
 
 
 class UserModelTests(TestCase):
+    """Verify usermodel behavior."""
     def test_user_string_representation(self):
         user = User.objects.create_user(
             email="user@example.com",

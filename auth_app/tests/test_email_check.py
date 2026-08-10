@@ -1,3 +1,5 @@
+"""Automated authentication API and permission tests."""
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -5,6 +7,7 @@ from auth_app.models import User
 
 
 class EmailCheckTests(APITestCase):
+    """Verify emailcheck behavior."""
     def setUp(self):
         self.user = User.objects.create_user(
             email="test@example.com",

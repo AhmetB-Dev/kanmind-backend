@@ -38,6 +38,9 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+Local development works with the built-in defaults. To customize environment
+settings, copy `.env.example` to `.env` and adjust the values.
+
 ### 4. Apply database migrations
 
 ```bash
@@ -96,8 +99,8 @@ http://127.0.0.1:8000/admin/
 ## Tech Stack
 
 - Python
-- Django 6.0.7
-- Django REST Framework 3.17.1
+- Django 5.2.17
+- Django REST Framework 3.18.0
 - django-cors-headers 4.9.0
 - Django REST Framework Token Authentication
 - SQLite

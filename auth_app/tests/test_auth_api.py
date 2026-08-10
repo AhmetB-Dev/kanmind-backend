@@ -1,3 +1,5 @@
+"""Automated authentication API and permission tests."""
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -6,6 +8,7 @@ from auth_app.models import User
 
 
 class AuthApiTests(APITestCase):
+    """Verify authapi behavior."""
     def test_registration_success(self):
         data = {
             "fullname": "Test User",

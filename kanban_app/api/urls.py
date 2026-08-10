@@ -1,15 +1,18 @@
+"""URL routes for board, task, and comment endpoints."""
+
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
     AssignedToMeView,
     BoardViewSet,
+    CommentDeleteView,
     ReviewingTasksView,
+    TaskCommentsView,
     TaskCreateView,
     TaskDetailView,
-    CommentDeleteView,
-    TaskCommentsView,
 )
+
 
 router = DefaultRouter()
 router.register("boards", BoardViewSet, basename="board")
@@ -42,4 +45,5 @@ urlpatterns = [
         name="comment-delete",
     ),
 ]
+
 urlpatterns += router.urls
