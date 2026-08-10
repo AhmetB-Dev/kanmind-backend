@@ -5,80 +5,7 @@ It provides authentication, board management, task workflows, member assignment,
 
 The backend is built with **Django** and **Django REST Framework** and is designed to work with the separate KanMind frontend.
 
-## Features
-
-- User registration and login
-- Token-based authentication
-- Email lookup for existing users
-- Create, read, update, and delete boards
-- Board ownership and member management
-- Create, update, assign, review, and delete tasks
-- Task status workflow:
-  - `to-do`
-  - `in-progress`
-  - `review`
-  - `done`
-- Task priorities:
-  - `low`
-  - `medium`
-  - `high`
-- Assigned-to-me task view
-- Reviewing task view
-- Task comments
-- Permission-based access control
-- Django admin interface
-- Automated API and permission tests
-- Optional guest/demo user
-
-## Tech Stack
-
-- Python
-- Django 6.0.7
-- Django REST Framework 3.17.1
-- django-cors-headers 4.9.0
-- Django REST Framework Token Authentication
-- SQLite
-- Coverage.py
-
-## Project Structure
-
-```text
-kanmind-backend/
-├── auth_app/
-│   ├── api/
-│   │   ├── permissions.py
-│   │   ├── serializers.py
-│   │   ├── urls.py
-│   │   └── views.py
-│   ├── management/
-│   │   └── commands/
-│   │       └── create_guest_user.py
-│   ├── migrations/
-│   ├── tests/
-│   ├── admin.py
-│   ├── managers.py
-│   └── models.py
-├── kanban_app/
-│   ├── api/
-│   │   ├── permissions.py
-│   │   ├── serializers.py
-│   │   ├── urls.py
-│   │   └── views.py
-│   ├── migrations/
-│   ├── tests/
-│   ├── admin.py
-│   └── models.py
-├── core/
-│   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
-├── manage.py
-├── requirements.txt
-└── .gitignore
-```
-
-## Installation
+## Quick Start
 
 ### 1. Clone the repository
 
@@ -140,6 +67,41 @@ The Django admin is available at:
 ```text
 http://127.0.0.1:8000/admin/
 ```
+
+## Features
+
+- User registration and login
+- Token-based authentication
+- Email lookup for existing users
+- Create, read, update, and delete boards
+- Board ownership and member management
+- Create, update, assign, review, and delete tasks
+- Task status workflow:
+  - `to-do`
+  - `in-progress`
+  - `review`
+  - `done`
+- Task priorities:
+  - `low`
+  - `medium`
+  - `high`
+- Assigned-to-me task view
+- Reviewing task view
+- Task comments
+- Permission-based access control
+- Django admin interface
+- Automated API and permission tests
+- Optional guest/demo user
+
+## Tech Stack
+
+- Python
+- Django 6.0.7
+- Django REST Framework 3.17.1
+- django-cors-headers 4.9.0
+- Django REST Framework Token Authentication
+- SQLite
+- Coverage.py
 
 ## Frontend Connection
 
