@@ -1,6 +1,6 @@
 # KanMind Backend
 
-KanMind Backend is a REST API for a kanban-style task management application.  
+KanMind Backend is a REST API for a kanban-style task management application.
 It provides authentication, board management, task workflows, member assignment, reviews, comments, and permission-based access control.
 
 The backend is built with **Django** and **Django REST Framework** and is designed to work with the separate KanMind frontend.
@@ -99,7 +99,7 @@ http://127.0.0.1:8000/admin/
 ## Tech Stack
 
 - Python
-- Django 5.2.17
+- Django 6.0.7
 - Django REST Framework 3.18.0
 - django-cors-headers 4.9.0
 - Django REST Framework Token Authentication
